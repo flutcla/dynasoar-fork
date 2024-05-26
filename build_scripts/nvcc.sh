@@ -1,6 +1,6 @@
 #!/bin/sh
 set -e
-nvcc -Xcudafe "--diag_suppress=1427" "$@"
+nvcc -rdc=true -Xcudafe "--diag_suppress=1427" "$@"
 
 # Change host compiler with --ccbin
 # E.g.: -ccbin clang-3.8 -lstdc++
