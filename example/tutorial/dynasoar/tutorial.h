@@ -2,12 +2,10 @@
 
 #include "dynasoar.h"
 
-class Foo;
-class Bar;
 class Fib;
 class Sum;
 
-using AllocatorT = SoaAllocator</*num_objs=*/ 262144, Foo, Bar, Fib, Sum>;
+using AllocatorT = SoaAllocator</*num_objs=*/ 262144, Fib, Sum>;
 
 __global__ void do_calc(int n, int* result, bool* isCalculated);
 
