@@ -1,0 +1,18 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build Tutorial",
+      "type": "shell",
+      "command": "${workspaceFolder}/build_scripts/build_tutorial.sh",
+      "args": [
+        "-d",
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    }
+  ]
+}
