@@ -12,15 +12,14 @@ int main(int argc, char** argv)
   cudaMemcpyToSymbol(device_allocator, &dev_ptr, sizeof(AllocatorT*), 0,
     cudaMemcpyHostToDevice);
 
-  int result;
-  bool isCalculated = false;
+  int result = -1;
 
-  do_calc << <1, 1 >> > (9, &result, &isCalculated);
+  do_calc << <1, 1 >> > (20, &result);
   cudaDeviceSynchronize();
 
-  for (int i = 1; i < 20; i++)
+  for (int i = 1; i < 50; i++)
   {
-    if (isCalculated) {
+    if (result != -1) {
       printf("-- Result: %i --\n", result);
       break;
     }
@@ -32,22 +31,21 @@ int main(int argc, char** argv)
   }
 }
 
-__global__ void do_calc(int n, int* result, bool* isCalculated)
+__global__ void do_calc(int n, int* result)
 {
-  new(device_allocator) Fib(result, isCalculated, n);
+  new(device_allocator) Fib(result, n);
 }
 
 __device__ void Fib::calc()
 {
   if (n <= 1) {
     *result = n;
-    *isCalculated = true;
     destroy(device_allocator, this);
     return;
   }
-  Sum* sum = new(device_allocator) Sum(result, isCalculated);
-  new(device_allocator) Fib(&sum->x, &sum->isXCalculated, n - 1);
-  new(device_allocator) Fib(&sum->y, &sum->isYCalculated, n - 2);
+  Sum* sum = new(device_allocator) Sum(result);
+  new(device_allocator) Fib(&sum->x, n - 1);
+  new(device_allocator) Fib(&sum->y, n - 2);
   destroy(device_allocator, this);
 }
 
@@ -58,27 +56,15 @@ __device__ void Fib::printInfo()
 
 __device__ void Sum::calc()
 {
-  if (isXCalculated && isYCalculated)
+  if (x != -1 && y != -1)
   {
     printf("x + y = %i\n", (int)x + (int)y);
     *result = x + y;
-    *isCalculated = true;
     destroy(device_allocator, this);
   }
 }
 
 __device__ void Sum::printInfo()
 {
-  if (isXCalculated && isYCalculated)
-  {
-    printf("X: %i, Y: %i\n", (int)x, (int)y);
-  }
-  else if (isXCalculated)
-  {
-    printf("X: %i\n", (int)x);
-  }
-  else if (isYCalculated)
-  {
-    printf("Y: %i\n", (int)y);
-  }
+  printf("X: %i, Y: %i\n", (int)x, (int)y);
 }
