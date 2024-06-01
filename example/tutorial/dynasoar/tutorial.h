@@ -2,12 +2,26 @@
 
 #include "dynasoar.h"
 
+class Result;
 class Fib;
 class Sum;
 
-using AllocatorT = SoaAllocator</*num_objs=*/ 262144, Fib, Sum>;
+using AllocatorT = SoaAllocator</*num_objs=*/ 262144, Result, Fib, Sum>;
 
 __global__ void do_calc(int n, int* result);
+
+class Result : public AllocatorT::Base
+{
+public:
+  declare_field_types(Result, int*)
+
+public:
+  Field<Result, 0> result;
+
+public:
+  __device__ Result(int* result)
+    : result(result) {}
+};
 
 class Fib : public AllocatorT::Base
 {

@@ -12,27 +12,33 @@ int main(int argc, char** argv)
   cudaMemcpyToSymbol(device_allocator, &dev_ptr, sizeof(AllocatorT*), 0,
     cudaMemcpyHostToDevice);
 
-  int result = -1;
+  int h_result;
+  int* d_result;
 
-  do_calc << <1, 1 >> > (20, &result);
+  cudaMalloc(&d_result, sizeof(int));
+  int n = 25;
+
+  do_calc << <1, 1 >> > (n, d_result);
   cudaDeviceSynchronize();
 
   for (int i = 1; i < 50; i++)
   {
-    if (result != -1) {
-      printf("-- Result: %i --\n", result);
+    cudaMemcpy(&h_result, d_result, sizeof(int), cudaMemcpyDeviceToHost);
+    if (h_result != -1) {
+      printf("-- Result: Fib(%i) = %i --\n", n, h_result);
       break;
     }
     printf("====== Iteration: %i ======\n", i);
     allocator_handle->parallel_do<Fib, &Fib::calc>();
-    allocator_handle->parallel_do<Fib, &Fib::printInfo>();
+    // allocator_handle->parallel_do<Fib, &Fib::printInfo>();
     allocator_handle->parallel_do<Sum, &Sum::calc>();
-    allocator_handle->parallel_do<Sum, &Sum::printInfo>();
+    // allocator_handle->parallel_do<Sum, &Sum::printInfo>();
   }
 }
 
 __global__ void do_calc(int n, int* result)
 {
+  *result = -1;
   new(device_allocator) Fib(result, n);
 }
 
@@ -58,7 +64,6 @@ __device__ void Sum::calc()
 {
   if (x != -1 && y != -1)
   {
-    printf("x + y = %i\n", (int)x + (int)y);
     *result = x + y;
     destroy(device_allocator, this);
   }
