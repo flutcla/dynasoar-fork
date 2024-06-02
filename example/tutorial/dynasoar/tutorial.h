@@ -1,12 +1,13 @@
 #pragma once
 
 #include "dynasoar.h"
+// #define PRINT_INFO
 
 class Result;
 class Fib;
 class Sum;
 
-using AllocatorT = SoaAllocator</*num_objs=*/ 262144, Result, Fib, Sum>;
+using AllocatorT = SoaAllocator</*num_objs=*/ 262144000, Result, Fib, Sum>;
 
 __global__ void do_calc(int n, int* result);
 
@@ -38,7 +39,9 @@ public:
 
   __device__ void calc();
 
+#ifdef PRINT_INFO
   __device__ void printInfo();
+#endif
 };
 
 class Sum : public AllocatorT::Base
@@ -60,5 +63,7 @@ public:
 
   __device__ void calc();
 
+#ifdef PRINT_INFO
   __device__ void printInfo();
+#endif
 };

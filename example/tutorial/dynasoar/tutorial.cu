@@ -16,24 +16,31 @@ int main(int argc, char** argv)
   int* d_result;
 
   cudaMalloc(&d_result, sizeof(int));
-  int n = 25;
+  int n = 36;
 
   do_calc << <1, 1 >> > (n, d_result);
   cudaDeviceSynchronize();
 
-  for (int i = 1; i < 50; i++)
+  struct timespec cpu_time_start, cpu_time_end;
+  double cpu_time;
+  timespec_get(&cpu_time_start, TIME_UTC);
+  for (int i = 1; i < 200; i++)
   {
     cudaMemcpy(&h_result, d_result, sizeof(int), cudaMemcpyDeviceToHost);
     if (h_result != -1) {
       printf("-- Result: Fib(%i) = %i --\n", n, h_result);
       break;
     }
-    printf("====== Iteration: %i ======\n", i);
+    // printf("====== Iteration: %i ======\n", i);
     allocator_handle->parallel_do<Fib, &Fib::calc>();
     // allocator_handle->parallel_do<Fib, &Fib::printInfo>();
     allocator_handle->parallel_do<Sum, &Sum::calc>();
     // allocator_handle->parallel_do<Sum, &Sum::printInfo>();
   }
+  timespec_get(&cpu_time_end, TIME_UTC);
+  cpu_time = (cpu_time_end.tv_sec - cpu_time_start.tv_sec) +
+    (cpu_time_end.tv_nsec - cpu_time_start.tv_nsec) / 1e9;
+  printf("fib_single(%d) = %d (%f sec)\n", n, h_result, cpu_time);
 }
 
 __global__ void do_calc(int n, int* result)
@@ -51,14 +58,18 @@ __device__ void Fib::calc()
   }
   Sum* sum = new(device_allocator) Sum(result);
   new(device_allocator) Fib(&sum->x, n - 1);
-  new(device_allocator) Fib(&sum->y, n - 2);
-  destroy(device_allocator, this);
+  result = &sum->y;
+  n = n - 2;
+  // new(device_allocator) Fib(&sum->y, n - 2);
+  // destroy(device_allocator, this);
 }
 
+#ifdef PRINT_INFO
 __device__ void Fib::printInfo()
 {
   printf("N: %i\n", (int)n);
 }
+#endif
 
 __device__ void Sum::calc()
 {
@@ -69,7 +80,9 @@ __device__ void Sum::calc()
   }
 }
 
+#ifdef PRINT_INFO
 __device__ void Sum::printInfo()
 {
   printf("X: %i, Y: %i\n", (int)x, (int)y);
 }
+#endif
