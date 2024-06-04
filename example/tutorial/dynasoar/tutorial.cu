@@ -4,19 +4,27 @@
 __device__ AllocatorT* device_allocator;        // device side
 AllocatorHandle<AllocatorT>* allocator_handle;  // host side
 
+int DEFAULT = 36;
+
 int main(int argc, char** argv)
 {
+  int n = DEFAULT;
+  if (argc == 2) {
+    n = atoi(argv[1]);
+    if (n == 0) n = DEFAULT;
+  }
+
   // Some boilerplate code.... Create new allocator.
   allocator_handle = new AllocatorHandle<AllocatorT>();
   AllocatorT* dev_ptr = allocator_handle->device_pointer();
   cudaMemcpyToSymbol(device_allocator, &dev_ptr, sizeof(AllocatorT*), 0,
     cudaMemcpyHostToDevice);
+  AllocatorT::DBG_print_stats();
 
   int h_result;
   int* d_result;
 
   cudaMalloc(&d_result, sizeof(int));
-  int n = 36;
 
   do_calc << <1, 1 >> > (n, d_result);
   cudaDeviceSynchronize();
