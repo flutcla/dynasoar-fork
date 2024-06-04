@@ -9,32 +9,32 @@ class Sum;
 
 using AllocatorT = SoaAllocator</*num_objs=*/ 262144000, Result, Fib, Sum>;
 
-__global__ void do_calc(int n, int* result);
+__global__ void do_calc(int n, intptr_t* result);
 
 class Result : public AllocatorT::Base
 {
 public:
-  declare_field_types(Result, int*)
+  declare_field_types(Result, intptr_t*)
 
 public:
   Field<Result, 0> result;
 
 public:
-  __device__ Result(int* result)
+  __device__ Result(intptr_t* result)
     : result(result) {}
 };
 
 class Fib : public AllocatorT::Base
 {
 public:
-  declare_field_types(Fib, int*, int)
+  declare_field_types(Fib, intptr_t*, int)
 
 public:
   Field<Fib, 0> result;
   Field<Fib, 1> n;
 
 public:
-  __device__ Fib(int* result, int n)
+  __device__ Fib(intptr_t* result, int n)
     : result(result), n(n) {}
 
   __device__ void calc();
@@ -47,7 +47,7 @@ public:
 class Sum : public AllocatorT::Base
 {
 public:
-  declare_field_types(Sum, int*, int, int)
+  declare_field_types(Sum, intptr_t*, intptr_t, intptr_t)
 
 public:
   Field<Sum, 0> result;
@@ -55,7 +55,7 @@ public:
   Field<Sum, 2> y;
 
 public:
-  __device__ Sum(int* result)
+  __device__ Sum(intptr_t* result)
     : result(result) {
     x = -1;
     y = -1;

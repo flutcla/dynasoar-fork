@@ -21,10 +21,10 @@ int main(int argc, char** argv)
     cudaMemcpyHostToDevice);
   AllocatorT::DBG_print_stats();
 
-  int h_result;
-  int* d_result;
+  intptr_t h_result;
+  intptr_t* d_result;
 
-  cudaMalloc(&d_result, sizeof(int));
+  cudaMalloc(&d_result, sizeof(intptr_t));
 
   do_calc << <1, 1 >> > (n, d_result);
   cudaDeviceSynchronize();
@@ -34,8 +34,8 @@ int main(int argc, char** argv)
   timespec_get(&cpu_time_start, TIME_UTC);
   for (int i = 1; i < 200; i++)
   {
-    cudaMemcpy(&h_result, d_result, sizeof(int), cudaMemcpyDeviceToHost);
-    if (h_result != -1) {
+    cudaMemcpy(&h_result, d_result, sizeof(intptr_t), cudaMemcpyDeviceToHost);
+    if ((int)h_result != -1) {
       printf("-- Result: Fib(%i) = %i --\n", n, h_result);
       break;
     }
@@ -51,7 +51,7 @@ int main(int argc, char** argv)
   printf("fib_single(%d) = %d (%f sec)\n", n, h_result, cpu_time);
 }
 
-__global__ void do_calc(int n, int* result)
+__global__ void do_calc(int n, intptr_t* result)
 {
   *result = -1;
   new(device_allocator) Fib(result, n);
