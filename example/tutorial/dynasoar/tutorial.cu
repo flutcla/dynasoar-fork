@@ -36,7 +36,7 @@ int main(int argc, char** argv)
   {
     cudaMemcpy(&h_result, d_result, sizeof(intptr_t), cudaMemcpyDeviceToHost);
     if ((int)h_result != -1) {
-      printf("-- Result: Fib(%i) = %i --\n", n, h_result);
+      printf("-- Result: Fib(%i) = %i --\n", n, (int)h_result);
       break;
     }
     // printf("====== Iteration: %i ======\n", i);
@@ -48,7 +48,7 @@ int main(int argc, char** argv)
   timespec_get(&cpu_time_end, TIME_UTC);
   cpu_time = (cpu_time_end.tv_sec - cpu_time_start.tv_sec) +
     (cpu_time_end.tv_nsec - cpu_time_start.tv_nsec) / 1e9;
-  printf("fib_single(%d) = %d (%f sec)\n", n, h_result, cpu_time);
+  printf("fib_single(%d) = %d (%f sec)\n", n, (int)h_result, cpu_time);
 }
 
 __global__ void do_calc(int n, intptr_t* result)
