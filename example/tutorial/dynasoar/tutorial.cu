@@ -19,7 +19,6 @@ int main(int argc, char** argv)
   AllocatorT* dev_ptr = allocator_handle->device_pointer();
   cudaMemcpyToSymbol(device_allocator, &dev_ptr, sizeof(AllocatorT*), 0,
     cudaMemcpyHostToDevice);
-  AllocatorT::DBG_print_stats();
 
   int h_result;
   int* d_result;
@@ -43,7 +42,9 @@ int main(int argc, char** argv)
     allocator_handle->parallel_do<Fib, &Fib::calc>();
     // allocator_handle->parallel_do<Fib, &Fib::printInfo>();
     allocator_handle->parallel_do<Sum, &Sum::calc>();
+    // allocator_handle->parallel_do<Sum, &Sum::calc>();
     // allocator_handle->parallel_do<Sum, &Sum::printInfo>();
+    // allocator_handle->DBG_print_state_stats();
   }
   timespec_get(&cpu_time_end, TIME_UTC);
   cpu_time = (cpu_time_end.tv_sec - cpu_time_start.tv_sec) +
