@@ -9,56 +9,42 @@ do { \
      } \
 } while(0)
 
-__device__ void initMem(int* sdata, int loopCount, int idx)
+__device__ void initMem(int* data, int loopCount, int idx)
 {
   if (idx >= POW2(loopCount - 1)) return;
 
   int currentOffset = POW2(loopCount - 1) - 1;
   int nextOffset = POW2(loopCount) - 1;
-  int n = sdata[currentOffset + idx];
+  int n = data[currentOffset + idx];
   if (n <= 1) return;
-  sdata[currentOffset + idx] = -1;
-  sdata[nextOffset + 2 * idx] = n - 1;
-  sdata[nextOffset + 2 * idx + 1] = n - 2;
+  data[currentOffset + idx] = -1;
+  data[nextOffset + 2 * idx] = n - 1;
+  data[nextOffset + 2 * idx + 1] = n - 2;
 }
 
-__device__ void addUp(int* sdata, int loopCount, int idx)
+__device__ void addUp(int* data, int loopCount, int idx)
 {
   if (idx >= POW2(loopCount - 1)) return;
 
   int currentOffset = POW2(loopCount - 1) - 1;
   int nextOffset = POW2(loopCount) - 1;
-  int n = sdata[currentOffset + idx];
+  int n = data[currentOffset + idx];
   if (n != -1) return;
-  sdata[currentOffset + idx] = sdata[nextOffset + 2 * idx] + sdata[nextOffset + 2 * idx + 1];
+  data[currentOffset + idx] = data[nextOffset + 2 * idx] + data[nextOffset + 2 * idx + 1];
 }
 
-__global__ void fibReductionCUDA(int* g_idata, int* g_odata)
+__global__ void fibReductionCUDA(int* data)
 {
-  extern __shared__ int sdata[];
-  int n = g_idata[0];
+  int n = data[0];
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
-  if (idx == 0)
-  {
-    sdata[0] = n;
-  }
-  __syncthreads();
 
   for (int i = 1; i <= n; i++) {
-    initMem(sdata, i, idx);
+    initMem(data, i, idx);
     __syncthreads();
   }
   for (int i = n; i > 0; i--) {
-    addUp(sdata, i, idx);
+    addUp(data, i, idx);
     __syncthreads();
-  }
-
-  if (idx == 0)
-  {
-    for (int i = 0; i < POW2(n) - 1; i++)
-    {
-      g_odata[i] = sdata[i];
-    }
   }
 }
 
@@ -66,21 +52,18 @@ int fibReduction(int n)
 {
   int size = (POW2(n) - 1) * sizeof(int);
 
-  int* h_idata = (int*)malloc(sizeof(int));
-  int* h_odata = (int*)malloc(size);
-  h_idata[0] = n;
+  int* h_data = (int*)malloc(size);
+  h_data[0] = n;
 
-  int* d_idata = NULL;
-  int* d_odata = NULL;
-  CUDA_SAFE_CALL(cudaMalloc((void**)&d_idata, sizeof(int)));
-  CUDA_SAFE_CALL(cudaMalloc((void**)&d_odata, size));
-  CUDA_SAFE_CALL(cudaMemcpy(d_idata, h_idata, sizeof(int), cudaMemcpyHostToDevice));
+  int* d_data = NULL;
+  CUDA_SAFE_CALL(cudaMalloc((void**)&d_data, size));
+  CUDA_SAFE_CALL(cudaMemcpy(d_data, h_data, sizeof(int), cudaMemcpyHostToDevice));
 
   int threadCount = 1024;
   int threadNeeded = POW2(n - 2);
-  int blockCount = threadNeeded / threadCount;
+  int blockCount = ceil(threadNeeded / (float)threadCount);
 
-  fibReductionCUDA << <blockCount, threadCount, size >> > (d_idata, d_odata);
+  fibReductionCUDA << <blockCount, threadCount >> > (d_data);
   cudaError_t err = cudaGetLastError();
   if (err != cudaSuccess)
   {
@@ -88,9 +71,9 @@ int fibReduction(int n)
     exit(-1);
   }
 
-  CUDA_SAFE_CALL(cudaMemcpy(h_odata, d_odata, size, cudaMemcpyDeviceToHost));
+  CUDA_SAFE_CALL(cudaMemcpy(h_data, d_data, size, cudaMemcpyDeviceToHost));
 
-  int result = h_odata[0];
+  int result = h_data[0];
 
   // for (int loop = 1; loop <= n; loop++)
   // {
@@ -101,10 +84,8 @@ int fibReduction(int n)
   //   printf("\n");
   // }
 
-  free(h_idata);
-  free(h_odata);
-  cudaFree(d_idata);
-  cudaFree(d_odata);
+  free(h_data);
+  cudaFree(d_data);
 
   return result;
 }
