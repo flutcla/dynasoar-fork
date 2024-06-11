@@ -38,6 +38,44 @@
         "MIMode": "gdb",
         "miDebuggerPath": "C:\\MinGW\\bin\\gdb.exe"
       }
+    },
+    {
+      "name": "Debug Kiuchi",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/kiuchi/bin/main",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ],
+      "preLaunchTask": "Build Kiuchi",
+      "miDebuggerPath": "/usr/bin/gdb",
+      "logging": {
+        "trace": true,
+        "traceResponse": true,
+        "engineLogging": true
+      },
+      "visualizerFile": "${workspaceFolder}/.vscode/gdb.pretty",
+      "linux": {
+        "MIMode": "gdb",
+        "miDebuggerPath": "/usr/bin/gdb"
+      },
+      "osx": {
+        "MIMode": "lldb"
+      },
+      "windows": {
+        "MIMode": "gdb",
+        "miDebuggerPath": "C:\\MinGW\\bin\\gdb.exe"
+      }
     }
   ]
 }

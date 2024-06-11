@@ -13,7 +13,7 @@ OUT = $(BIN_DIR)main
 NVCC = nvcc
 CXX = g++
 CC = gcc
-CUDA_CXXFLAGS = -rdc=true -Xcudafe "--diag_suppress=1427" -std=c++11 -lineinfo --expt-extended-lambda -gencode arch=compute_50,code=sm_50 -gencode arch=compute_61,code=sm_61 -maxrregcount=64
+CUDA_CXXFLAGS = -g -G -rdc=true -Xcudafe "--diag_suppress=1427" -std=c++11 -lineinfo --expt-extended-lambda -gencode arch=compute_50,code=sm_50 -gencode arch=compute_61,code=sm_61 -maxrregcount=64
 CXXFLAGS = -std=c++11
 CFLAGS = -std=c11
 INCLUDES = -I./src -I../lib/cub -I../ -I../example/configuration/dynasoar

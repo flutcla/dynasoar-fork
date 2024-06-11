@@ -1,0 +1,7 @@
+{
+  "files.associations": {
+    "*.rkt": "racket",
+    "cmath": "cpp",
+    "bitset": "cpp"
+  }
+}

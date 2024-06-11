@@ -13,6 +13,20 @@
         "isDefault": true
       },
       "problemMatcher": []
+    },
+    {
+      "label": "Build Kiuchi",
+      "type": "shell",
+      "command": "make",
+      "options": {
+        "cwd": "${workspaceFolder}/kiuchi"
+      },
+      "args": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
     }
   ]
 }
