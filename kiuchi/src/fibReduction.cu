@@ -59,11 +59,13 @@ int fibReduction(int n)
   CUDA_SAFE_CALL(cudaMalloc((void**)&d_data, size));
   CUDA_SAFE_CALL(cudaMemcpy(d_data, h_data, sizeof(int), cudaMemcpyHostToDevice));
 
-  int threadCount = 1024;
-  int threadNeeded = POW2(n - 2);
-  int blockCount = ceil(threadNeeded / (float)threadCount);
+  int blockCount = 1024;
+  int blockNeeded = POW2(n - 2);
+  int gridCount = (blockNeeded + blockCount - 1) / blockCount;
 
-  fibReductionCUDA << <blockCount, threadCount >> > (d_data);
+  // dim3 grid(65535, 65535);
+  // dim3 block(1024);
+  fibReductionCUDA << <gridCount, blockCount >> > (d_data);
   cudaError_t err = cudaGetLastError();
   if (err != cudaSuccess)
   {
@@ -75,14 +77,14 @@ int fibReduction(int n)
 
   int result = h_data[0];
 
-  // for (int loop = 1; loop <= n; loop++)
-  // {
-  //   for (int i = POW2(loop - 1) - 1; i < POW2(loop) - 1; i++)
-  //   {
-  //     printf("%d ", h_odata[i]);
-  //   }
-  //   printf("\n");
-  // }
+  for (int loop = 1; loop <= n; loop++)
+  {
+    for (int i = POW2(loop - 1) - 1; i < POW2(loop) - 1; i++)
+    {
+      printf("%d ", h_data[i]);
+    }
+    printf("\n");
+  }
 
   free(h_data);
   cudaFree(d_data);

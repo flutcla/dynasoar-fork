@@ -5,6 +5,6 @@
 int main(int argc, char** argv) {
   hello();
   // exec_example();
-  int n = (argc == 2) ? atoi(argv[1]) : 15;
+  int n = (argc == 2) ? atoi(argv[1]) : 25;
   printf("fib(%d) = %d\n", n, fibReduction(n));
 }
