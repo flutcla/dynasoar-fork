@@ -8,9 +8,19 @@ do { \
          exit(err); \
      } \
 } while(0)
+#define CUDA_CHECK_ERROR() \
+do { \
+  cudaError_t err = cudaGetLastError(); \
+  if (err != cudaSuccess) \
+  { \
+    fprintf(stderr, "kernel launch failed : %s\n", cudaGetErrorString(err)); \
+    exit(-1); \
+  } \
+} while (0)
 
-__device__ void initMem(int* data, int loopCount, int idx)
+__global__ void initMem(int* data, int loopCount)
 {
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
   if (idx >= POW2(loopCount - 1)) return;
 
   int currentOffset = POW2(loopCount - 1) - 1;
@@ -22,8 +32,9 @@ __device__ void initMem(int* data, int loopCount, int idx)
   data[nextOffset + 2 * idx + 1] = n - 2;
 }
 
-__device__ void addUp(int* data, int loopCount, int idx)
+__global__ void addUp(int* data, int loopCount)
 {
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
   if (idx >= POW2(loopCount - 1)) return;
 
   int currentOffset = POW2(loopCount - 1) - 1;
@@ -31,21 +42,6 @@ __device__ void addUp(int* data, int loopCount, int idx)
   int n = data[currentOffset + idx];
   if (n != -1) return;
   data[currentOffset + idx] = data[nextOffset + 2 * idx] + data[nextOffset + 2 * idx + 1];
-}
-
-__global__ void fibReductionCUDA(int* data)
-{
-  int n = data[0];
-  int idx = blockIdx.x * blockDim.x + threadIdx.x;
-
-  for (int i = 1; i <= n; i++) {
-    initMem(data, i, idx);
-    __syncthreads();
-  }
-  for (int i = n - 1; i > 0; i--) {
-    addUp(data, i, idx);
-    __syncthreads();
-  }
 }
 
 int fibReduction(int n)
@@ -65,12 +61,17 @@ int fibReduction(int n)
 
   // dim3 grid(65535, 65535);
   // dim3 block(1024);
-  fibReductionCUDA << <gridCount, blockCount >> > (d_data);
-  cudaError_t err = cudaGetLastError();
-  if (err != cudaSuccess)
+
+  for (int i = 1; i <= n; i++)
   {
-    fprintf(stderr, "kernel launch failed : %s\n", cudaGetErrorString(err));
-    exit(-1);
+    initMem << <gridCount, blockCount >> > (d_data, i);
+    CUDA_CHECK_ERROR();
+  }
+
+  for (int i = n - 1; i > 0; i--)
+  {
+    addUp << <gridCount, blockCount >> > (d_data, i);
+    CUDA_CHECK_ERROR();
   }
 
   CUDA_SAFE_CALL(cudaMemcpy(h_data, d_data, size, cudaMemcpyDeviceToHost));
