@@ -42,7 +42,7 @@ __global__ void fibReductionCUDA(int* data)
     initMem(data, i, idx);
     __syncthreads();
   }
-  for (int i = n; i > 0; i--) {
+  for (int i = n - 1; i > 0; i--) {
     addUp(data, i, idx);
     __syncthreads();
   }
@@ -77,14 +77,14 @@ int fibReduction(int n)
 
   int result = h_data[0];
 
-  for (int loop = 1; loop <= n; loop++)
-  {
-    for (int i = POW2(loop - 1) - 1; i < POW2(loop) - 1; i++)
-    {
-      printf("%d ", h_data[i]);
-    }
-    printf("\n");
-  }
+  // for (int loop = 1; loop <= n; loop++)
+  // {
+  //   for (int i = POW2(loop - 1) - 1; i < POW2(loop) - 1; i++)
+  //   {
+  //     printf("%d ", h_data[i]);
+  //   }
+  //   printf("\n");
+  // }
 
   free(h_data);
   cudaFree(d_data);
